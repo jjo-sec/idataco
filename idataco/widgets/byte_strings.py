@@ -42,6 +42,7 @@ class TacoByteStrings(TacoTabWidget):
 
     name = "Byte Strings"
     short_name = "byte_strings"
+    description = """ Attempt to find all byte / stack strings in a selected executable. """
 
     def initVars(self):
         self.byte_strings = {}

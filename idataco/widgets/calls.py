@@ -36,6 +36,8 @@ class TacoCalls(TacoTabWidget):
 
     name = "Cuckoo Calls"
     short_name = "cuckoo_calls"
+    description = """ Display Win32 API calls logged by Cuckoo Sandbox and allow for filtering by value and category.
+                      Also support annotating calls with metadata from the log """
 
     _COLOR_MAP = {
             "registry":  QtGui.QColor(0xff, 0xc5, 0xc5),

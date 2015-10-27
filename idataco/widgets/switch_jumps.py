@@ -42,8 +42,10 @@ log = logging.getLogger("taco.widgets")
 
 
 class TacoSwitchJumps(TacoTabWidget):
+
     name = "Switch Jumps"
     short_name = "switch_jumps"
+    description = """ Attempt to locate all known Switch Jumps (case statements) and display detailed information on each """
 
     def initVars(self):
         self.byte_strings = {}

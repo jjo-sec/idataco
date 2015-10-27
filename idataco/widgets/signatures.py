@@ -33,8 +33,10 @@ log = logging.getLogger("taco.widgets")
 
 
 class TacoSignatures(TacoTabWidget):
+
     name = "Cuckoo Signatures"
     short_name = "cuckoo_signatures"
+    description = """ Simple display of signatures detected by Cuckoo Sandbox """
 
     def initVars(self):
         self._signature_table = QtGui.QTableWidget()

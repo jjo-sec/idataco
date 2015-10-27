@@ -51,6 +51,10 @@ log.handlers = []
 handler.setFormatter(logging.Formatter("[%(asctime)s] [%(module)s] [%(levelname)s] %(funcName)s: %(message)s"))
 log.addHandler(handler)
 
+"""
+IDA TACO is an IDA Pro Plugin designed to bring Cuckoo Sandbox-generated output into IDA Pro
+to assist in reverse engineering malware as well as combining some commonly used tools into one UI
+"""
 class IDATaco(idaapi.PluginForm):
 
     ENABLED_WIDGETS = [
@@ -87,19 +91,6 @@ class IDATaco(idaapi.PluginForm):
             tab, tab_name = w.getTacoTab()
             self.tabs.addTab(tab, tab_name)
 
-        """
-        tab1_layout = QtGui.QVBoxLayout()
-        tab1_layout.addWidget(self._taco_loader)
-        tab1.setLayout(tab1_layout)
-        tab2_layout = QtGui.QVBoxLayout()
-        tab2_layout.addWidget(self._taco_signatures)
-        tab2.setLayout(tab2_layout)
-
-        h3 = QtGui.QHBoxLayout()
-        h3.addWidget(self._taco_calls)
-        tab3.setLayout(h3)
-        """
-
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.tabs)
         self.parent.setLayout(layout)
@@ -121,11 +112,11 @@ class IDATaco(idaapi.PluginForm):
         return True
 
     def jsonFileLoaded(self):
-        self._widgets['cuckoo_loader'].loadProcTree()
-        self._widgets['cuckoo_signatures'].load()
+        self._widgets["cuckoo_loader"].loadProcTree()
+        self._widgets["cuckoo_signatures"].load()
 
     def loadProcessData(self):
-        selected = self._widgets['cuckoo_loader'].getSelectedItems()
+        selected = self._widgets["cuckoo_loader"].getSelectedItems()
         if len(selected) == 1:
             pid = int(selected[0].text(0))
             data = self.process_data[pid]
@@ -136,6 +127,7 @@ class IDATaco(idaapi.PluginForm):
             # @TODO: Set a flag for tabs that need to be signaled on data load
             self._widgets["cuckoo_imports"].load()
             self._widgets["cuckoo_calls"].load()
+
 
 def start():
     global TacoForm

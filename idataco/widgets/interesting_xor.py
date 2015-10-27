@@ -39,6 +39,8 @@ log = logging.getLogger("taco.widgets")
 class TacoInterestingXOR(TacoTabWidget):
     name = "Interesting XORs"
     short_name = "interesting_xor"
+    description = """ Attempt to locate and document all XOR instructions potentially resulting in a non-zero output.
+                      Also attempt detection of whether or not the XOR occurred in a loop """
 
     def initVars(self):
         self._interesting_xors = []

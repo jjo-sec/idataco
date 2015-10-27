@@ -39,6 +39,7 @@ class TacoLoader(TacoTabWidget):
 
     name = "Cuckoo Loader"
     short_name = "cuckoo_loader"
+    description = """ Basic JSON File and Process Data Loader """
 
     def initVars(self):
         self._fpath = QtGui.QLineEdit()
