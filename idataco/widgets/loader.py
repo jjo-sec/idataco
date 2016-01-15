@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,12 +23,11 @@
 #
 ########################################################################
 
-import idc
-from PySide import QtGui,QtCore
-import json
 import re
+import idc
+import json
 
-
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
 import logging
@@ -42,20 +41,20 @@ class TacoLoader(TacoTabWidget):
     description = """ Basic JSON File and Process Data Loader """
 
     def initVars(self):
-        self._fpath = QtGui.QLineEdit()
+        self._fpath = qt.qlineedit()()
         self._fpath.setMaxLength(128)
 
-        self._proc_tree = QtGui.QTreeWidget()
+        self._proc_tree = qt.qtreewidget()()
         self._proc_tree.setColumnCount(2)
         self._proc_tree.setHeaderLabels(("PID", "ProcName"))
         self._proc_tree.setColumnWidth(0, 100)
 
     def initLayout(self):
-        loader_vlayout = QtGui.QVBoxLayout()
-        loader_hlayout = QtGui.QHBoxLayout()
-        loader_hlayout.addWidget(QtGui.QLabel("JSON File"))
-        b = QtGui.QPushButton("Open File")
-        b1 = QtGui.QPushButton("Process File")
+        loader_vlayout = qt.qvboxlayout()()
+        loader_hlayout = qt.qhboxlayout()()
+        loader_hlayout.addWidget(qt.qlabel()("JSON File"))
+        b = qt.qpushbutton()("Open File")
+        b1 = qt.qpushbutton()("Process File")
         b.clicked.connect(self.getFileName)
         b1.clicked.connect(self.loadJsonFile)
         loader_hlayout.addWidget(self._fpath)
@@ -63,7 +62,7 @@ class TacoLoader(TacoTabWidget):
         loader_hlayout.addWidget(b1)
         loader_vlayout.addLayout(loader_hlayout)
         #loader_hlayout2 = QtGui.QHBoxLayout()
-        b2 = QtGui.QPushButton("Load Data for Selected Process")
+        b2 = qt.qpushbutton()("Load Data for Selected Process")
         b2.clicked.connect(self.parent.loadProcessData)
         loader_vlayout.addWidget(b2)
         loader_vlayout.addWidget(self._proc_tree)
@@ -81,14 +80,14 @@ class TacoLoader(TacoTabWidget):
     def addChildren(self, parentWidget, children):
         if self.parent.cuckoo_version.startswith("1."):
             for child in children:
-                node = QtGui.QTreeWidgetItem(parentWidget)
+                node = qt.qtablewidgetitem()(parentWidget)
                 node.setText(0, "{}".format(child['pid']))
                 node.setText(1, child['name'])
                 self.addChildren(node, child['children'])
                 self._proc_tree.expandItem(node)
         else:
             for child in children:
-                node = QtGui.QTreeWidgetItem(parentWidget)
+                node = qt.qtablewidgetitem()(parentWidget)
                 node.setText(0, "{}".format(child['pid']))
                 node.setText(1, child['process_name'])
                 self.addChildren(node, child['children'])
@@ -101,14 +100,14 @@ class TacoLoader(TacoTabWidget):
         self._proc_tree.setColumnWidth(0, 100)
         if self.parent.cuckoo_version.startswith("1."):
             for process in self.parent.process_tree:
-                node = QtGui.QTreeWidgetItem(self._proc_tree)
+                node = qt.qtreewidgetitem()(self._proc_tree)
                 node.setText(0, "{}".format(process["pid"]))
                 node.setText(1, process["name"])
                 self.addChildren(node, process["children"])
                 self._proc_tree.expandItem(node)
         else:
             for process in self.parent.process_tree:
-                node = QtGui.QTreeWidgetItem(self._proc_tree)
+                node = qt.qtreewidgetitem()(self._proc_tree)
                 node.setText(0, "{}".format(process["pid"]))
                 node.setText(1, process["process_name"])
                 self.addChildren(node, process["children"])
@@ -199,13 +198,13 @@ class TacoLoader(TacoTabWidget):
         del json_data
 
     def getFileName(self):
-        fileName = QtGui.QFileDialog.getOpenFileName(self, "Open JSON", None, "JSON Files (*.json)")
+        fileName = qt.qfiledialog().getOpenFileName(self, "Open JSON", None, "JSON Files (*.json)")
         if fileName and fileName[0]:
             self._fpath.setText(fileName[0])
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,10 +23,10 @@
 #
 ########################################################################
 
-from PySide import QtGui,QtCore
 import re
 import idc
 
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
 import logging
@@ -40,92 +40,92 @@ class TacoCalls(TacoTabWidget):
                       Also support annotating calls with metadata from the log """
 
     _COLOR_MAP = {
-            "registry":  QtGui.QColor(0xff, 0xc5, 0xc5),
-            "filesystem": QtGui.QColor(0xff, 0xe3, 0xc5),
-            "process": QtGui.QColor(0xc5, 0xe0, 0xff),
-            #"threading": QtGui.QColor(0xa,0xa,0xa),
-            "services": QtGui.QColor(0xcc, 0xc5, 0xff),
-            "device": QtGui.QColor(0xcc, 0xc5, 0xff),
-            "network": QtGui.QColor(0xd3, 0xff, 0xc5),
-            "synchronization": QtGui.QColor(0xf9, 0xc5, 0xff),
-            #"crypto": QtGui.QColor(0x9,0x9,0x9),
-            "browser": QtGui.QColor(0xdf, 0xff, 0xdf),
+            "registry":  qt.qcolor()(0xff, 0xc5, 0xc5),
+            "filesystem": qt.qcolor()(0xff, 0xe3, 0xc5),
+            "process": qt.qcolor()(0xc5, 0xe0, 0xff),
+            #"threading": qt.qcolor()(0xa,0xa,0xa),
+            "services": qt.qcolor()(0xcc, 0xc5, 0xff),
+            "device": qt.qcolor()(0xcc, 0xc5, 0xff),
+            "network": qt.qcolor()(0xd3, 0xff, 0xc5),
+            "synchronization": qt.qcolor()(0xf9, 0xc5, 0xff),
+            #"crypto": qt.qcolor()(0x9,0x9,0x9),
+            "browser": qt.qcolor()(0xdf, 0xff, 0xdf),
     }
 
     def initVars(self):
-        self._call_table = QtGui.QTableWidget()
-        self._call_table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self._call_table = qt.qtablewidget()()
+        self._call_table.setEditTriggers(qt.qabstractitemview().NoEditTriggers)
         self._call_table.setRowCount(0)
         self._call_table.setColumnCount(6)
         self._call_table.setHorizontalHeaderLabels(["Category","Caller","Parent  Caller","API","Return","Args"])
-        self.clipboard = QtGui.QClipboard()
+        self.clipboard = qt.qclipboard()
         self.setupTableContextMenu()
         self._marked_up = set()
         self._checkbox_map = {}
 
         # call color picker setup
-        self._color_picker = QtGui.QColorDialog()
-        self._color_picker.setCurrentColor(QtGui.QColor(0xff,165,0x0))
+        self._color_picker = qt.qcolordialog()()
+        self._color_picker.setCurrentColor(qt.qcolor()(0xff,165,0x0))
         self._color_picker.blockSignals(True)
         self._color_picker.currentColorChanged.connect(self.chooseColor)
         self._color_picker.blockSignals(False)
-        self._color_button = QtGui.QPushButton("")
+        self._color_button = qt.qpushbutton()("")
         self._color_button.setStyleSheet("font-size:15px;background-color:#ffa500; border: 2px solid #222222")
         self._color_button.setFixedSize(15, 15)
         self._color_button.clicked.connect(self._color_picker.open)
 
         # func color picker setup
-        self._func_color_picker = QtGui.QColorDialog()
-        self._func_color_picker.setCurrentColor(QtGui.QColor(0xff, 0xff, 0xff))
+        self._func_color_picker = qt.qcolordialog()()
+        self._func_color_picker.setCurrentColor(qt.qcolor()(0xff, 0xff, 0xff))
         self._func_color_picker.blockSignals(True)
         self._func_color_picker.currentColorChanged.connect(self.chooseFuncColor)
         self._func_color_picker.blockSignals(False)
-        self._func_color_button = QtGui.QPushButton("")
+        self._func_color_button = qt.qpushbutton()("")
         self._func_color_button.setStyleSheet("font-size:15px;background-color:#ffffff; border: 2px solid #222222")
         self._func_color_button.setFixedSize(15, 15)
         self._func_color_button.clicked.connect(self._func_color_picker.open)
 
     def initLayout(self):
-        call_table_layout = QtGui.QVBoxLayout()
-        filter_layout = QtGui.QHBoxLayout()
-        markup_layout = QtGui.QHBoxLayout()
-        markup_layout.setAlignment(QtCore.Qt.AlignLeft)
-        markup_layout.addWidget(QtGui.QLabel("Choose Color: "))
+        call_table_layout = qt.qvboxlayout()()
+        filter_layout = qt.qhboxlayout()()
+        markup_layout = qt.qhboxlayout()()
+        markup_layout.setAlignment(qt.qtcore().Qt.AlignLeft)
+        markup_layout.addWidget(qt.qlabel()("Choose Color: "))
         markup_layout.addWidget(self._color_button)
-        markup_layout.addWidget(QtGui.QLabel("Choose Function Color: "))
+        markup_layout.addWidget(qt.qlabel()("Choose Function Color: "))
         markup_layout.addWidget(self._func_color_button)
-        markup_layout.addWidget(QtGui.QLabel("\t\t\tMarkup: "))
-        markup_category_button = QtGui.QPushButton("Selected")
+        markup_layout.addWidget(qt.qlabel()("\t\t\tMarkup: "))
+        markup_category_button = qt.qpushbutton()("Selected")
         markup_category_button.clicked.connect(self.markupCategories)
-        markup_all_button = QtGui.QPushButton("All")
+        markup_all_button = qt.qpushbutton()("All")
         markup_all_button.clicked.connect(self.markupAll)
-        markup_remove_button = QtGui.QPushButton("Remove")
+        markup_remove_button = qt.qpushbutton()("Remove")
         markup_remove_button.clicked.connect(self.removeAllMarkup)
         markup_layout.addWidget(markup_category_button)
         markup_layout.addWidget(markup_all_button)
         markup_layout.addWidget(markup_remove_button)
         call_table_layout.addLayout(markup_layout)
-        self._checkbox_layout = QtGui.QHBoxLayout()
-        self._checkbox_layout.setAlignment(QtCore.Qt.AlignLeft)
-        self._checkbox_layout.addWidget(QtGui.QLabel("Categories: "))
+        self._checkbox_layout = qt.qhboxlayout()()
+        self._checkbox_layout.setAlignment(qt.qtcore().Qt.AlignLeft)
+        self._checkbox_layout.addWidget(qt.qlabel()("Categories: "))
         call_table_layout.addLayout(self._checkbox_layout)
-        self._filter_box = QtGui.QLineEdit()
+        self._filter_box = qt.qlineedit()()
         self._filter_box.setMaxLength(80)
-        _filter_button = QtGui.QPushButton("Filter")
+        _filter_button = qt.qpushbutton()("Filter")
         _filter_button.clicked.connect(self.filterCallData)
-        filter_layout.setAlignment(QtCore.Qt.AlignLeft)
-        filter_layout.addWidget(QtGui.QLabel("Select: "))
-        b_all = QtGui.QPushButton("All")
+        filter_layout.setAlignment(qt.qtcore().Qt.AlignLeft)
+        filter_layout.addWidget(qt.qlabel()("Select: "))
+        b_all = qt.qpushbutton()("All")
         width = b_all.fontMetrics().boundingRect("All").width() + 9
         b_all.setMaximumWidth(width)
         b_all.clicked.connect(self.selectAll)
-        b_none = QtGui.QPushButton("None")
+        b_none = qt.qpushbutton()("None")
         width = b_all.fontMetrics().boundingRect("None").width() + 9
         b_none.setMaximumWidth(width)
         b_none.clicked.connect(self.selectNone)
         filter_layout.addWidget(b_all)
         filter_layout.addWidget(b_none)
-        filter_layout.addWidget(QtGui.QLabel("Filter Calls: "))
+        filter_layout.addWidget(qt.qlabel()("Filter Calls: "))
         filter_layout.addWidget(self._filter_box)
         filter_layout.addWidget(_filter_button)
         call_table_layout.addLayout(filter_layout)
@@ -133,16 +133,16 @@ class TacoCalls(TacoTabWidget):
         self.setLayout(call_table_layout)
 
     def setupTableContextMenu(self):
-        self._call_table.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-        copyAction = QtGui.QAction(self._call_table)
+        self._call_table.setContextMenuPolicy(qt.qtcore().Qt.ActionsContextMenu)
+        copyAction = qt.qaction()(self._call_table)
         copyAction.setText("Copy Cell Value")
         copyAction.triggered.connect(self.copyToClipboard)
         self._call_table.addAction(copyAction)
-        markupAction = QtGui.QAction(self._call_table)
+        markupAction = qt.qaction()(self._call_table)
         markupAction.setText("Add Markup to Selected Call")
         markupAction.triggered.connect(self.markUpItem)
         self._call_table.addAction(markupAction)
-        unMarkupAction = QtGui.QAction(self._call_table)
+        unMarkupAction = qt.qaction()(self._call_table)
         unMarkupAction.setText("Remove Markup from Selected Call")
         unMarkupAction.triggered.connect(self.unMarkUpItem)
         self._call_table.addAction(unMarkupAction)
@@ -172,10 +172,10 @@ class TacoCalls(TacoTabWidget):
 
     def load(self):
         for cat in sorted(list(self.parent.call_categories)):
-            self._checkbox_map[cat] = QtGui.QCheckBox(cat.capitalize())
+            self._checkbox_map[cat] = qt.qcheckbox()(cat.capitalize())
         for cat in sorted(self._checkbox_map.keys()):
             cb = self._checkbox_map[cat]
-            cb.setCheckState(QtCore.Qt.Checked)
+            cb.setCheckState(qt.qtcore().Qt.Checked)
             cb.clicked.connect(self.filterCallData)
             self._checkbox_layout.addWidget(cb)
         self._call_table.clear()
@@ -188,8 +188,8 @@ class TacoCalls(TacoTabWidget):
         row = 0
         for call in self.parent.calls:
             arg_str = "\r\n".join(["{}: {}".format(k, unicode(v)[:80].encode("unicode-escape")) for k, v in call["arguments"].items()])
-            bg_color = self._COLOR_MAP.get(call.get("category", ""), QtGui.QColor(0xff, 0xff, 0xff))
-            self._call_table.setItem(row, 0, QtGui.QTableWidgetItem(call.get("category", "")))
+            bg_color = self._COLOR_MAP.get(call.get("category", ""), qt.qcolor()(0xff, 0xff, 0xff))
+            self._call_table.setItem(row, 0, qt.qtablewidgetitem()(call.get("category", "")))
             self._call_table.item(row, 0).setBackground(bg_color)
             call_addr = ""
             if self.parent.cuckoo_version.startswith("1.3"):
@@ -199,15 +199,15 @@ class TacoCalls(TacoTabWidget):
             if self.parent.cuckoo_version.startswith("2.0") and call["stacktrace"]:
                 call_addr = call["stacktrace"][-1].split(" @ ")[-1]
             ret = call["return"] if "return" in call else str(call["return_value"])
-            self._call_table.setItem(row, 1, QtGui.QTableWidgetItem(call_addr))
+            self._call_table.setItem(row, 1, qt.qtablewidgetitem()(call_addr))
             self._call_table.item(row, 1).setBackground(bg_color)
-            self._call_table.setItem(row, 2, QtGui.QTableWidgetItem(call.get("parentcaller", "")))
+            self._call_table.setItem(row, 2, qt.qtablewidgetitem()(call.get("parentcaller", "")))
             self._call_table.item(row, 2).setBackground(bg_color)
-            self._call_table.setItem(row, 3, QtGui.QTableWidgetItem(call["api"]))
+            self._call_table.setItem(row, 3, qt.qtablewidgetitem()(call["api"]))
             self._call_table.item(row, 3).setBackground(bg_color)
-            self._call_table.setItem(row, 4, QtGui.QTableWidgetItem(ret))
+            self._call_table.setItem(row, 4, qt.qtablewidgetitem()(ret))
             self._call_table.item(row, 4).setBackground(bg_color)
-            self._call_table.setItem(row, 5, QtGui.QTableWidgetItem(arg_str))
+            self._call_table.setItem(row, 5, qt.qtablewidgetitem()(arg_str))
             self._call_table.item(row, 5).setBackground(bg_color)
             row += 1
         self._call_table.resizeRowsToContents()
@@ -323,12 +323,12 @@ class TacoCalls(TacoTabWidget):
 
     def selectAll(self):
         for cat, cb in self._checkbox_map.iteritems():
-            cb.setCheckState(QtCore.Qt.Checked)
+            cb.setCheckState(qt.qtcore().Qt.Checked)
         self.filterCallData()
 
     def selectNone(self):
         for cat, cb in self._checkbox_map.iteritems():
-            cb.setCheckState(QtCore.Qt.Unchecked)
+            cb.setCheckState(qt.qtcore().Qt.Unchecked)
         self.filterCallData()
 
     def chooseColor(self):
@@ -342,8 +342,8 @@ class TacoCalls(TacoTabWidget):
         border: 2px solid #222222".format(color.red(), color.green(), color.blue()))
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qhboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

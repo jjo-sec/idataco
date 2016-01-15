@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,20 +23,20 @@
 #
 ########################################################################
 
-from PySide import QtGui
+import idataco.util.qt as qt
 
 """
 Base class all tabs in TACO should sub-class for consistency
 """
 
 
-class TacoTabWidget(QtGui.QWidget):
+class TacoTabWidget(qt.qwidget()):
     name = ""
     short_name = ""
 
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self)
-        QtGui.QTableWidget()
+        qt.qwidget().__init__(self)
+        qt.qtablewidget()()
         self.parent = parent
         self.initVars()
         self.initLayout()

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,15 +23,15 @@
 #
 ########################################################################
 
-import ctypes
 import re
-from PySide import QtGui, QtCore
+import ctypes
 
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
-import idaapi
 import idc
 import idautils
+import idaapi
 
 import logging
 
@@ -46,14 +46,14 @@ class TacoByteStrings(TacoTabWidget):
 
     def initVars(self):
         self.byte_strings = {}
-        self._bytestring_table = QtGui.QTableWidget()
+        self._bytestring_table = qt.qtablewidget()()
         self._bytestring_table.setRowCount(1)
         self._bytestring_table.setColumnCount(3)
         self._bytestring_table.setHorizontalHeaderLabels(("Address", "Function", "String"))
-        self._clipboard = QtGui.QClipboard()
+        self._clipboard = qt.qclipboard()
 
     def initLayout(self):
-        layout = QtGui.QVBoxLayout()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self._bytestring_table)
         self.setLayout(layout)
 
@@ -80,9 +80,9 @@ class TacoByteStrings(TacoTabWidget):
         self._bytestring_table.setRowCount(len(self.byte_strings.keys()))
         row = 0
         for addr, bstr in self.byte_strings.items():
-            self._bytestring_table.setItem(row, 0, QtGui.QTableWidgetItem(addr))
-            self._bytestring_table.setItem(row, 1, QtGui.QTableWidgetItem(idaapi.get_func_name(int(addr[2:], 16))))
-            self._bytestring_table.setItem(row, 2, QtGui.QTableWidgetItem(bstr))
+            self._bytestring_table.setItem(row, 0, qt.qtablewidgetitem()(addr))
+            self._bytestring_table.setItem(row, 1, qt.qtablewidgetitem()(idaapi.get_func_name(int(addr[2:], 16))))
+            self._bytestring_table.setItem(row, 2, qt.qtablewidgetitem()(bstr))
             self._bytestring_table.resizeRowToContents(row)
             row += 1
         self._bytestring_table.setSortingEnabled(True)
@@ -161,8 +161,8 @@ class TacoByteStrings(TacoTabWidget):
                     func = idaapi.get_func(addr)
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

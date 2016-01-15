@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,10 +23,11 @@
 #
 ########################################################################
 
-from PySide import QtGui, QtCore
 import idc
 import logging
 import struct
+
+import idataco.util.qt as qt
 
 from . import TacoTabWidget
 
@@ -39,25 +40,25 @@ class TacoImports(TacoTabWidget):
     short_name = "cuckoo_imports"
 
     def initVars(self):
-        self._import_table = QtGui.QTableWidget()
-        self._import_table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self._import_table = qt.qtablewidget()()
+        self._import_table.setEditTriggers(qt.qabstractitemview().NoEditTriggers)
         self._import_table.setRowCount(0)
         self._import_table.setColumnCount(6)
         self._import_table.setHorizontalHeaderLabels(["Address","DLL","ProcName","ProcAddress","Type","IDA Name"])
-        self._import_table.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-        copyAction = QtGui.QAction(self._import_table)
+        self._import_table.setContextMenuPolicy(qt.qtcore().Qt.ActionsContextMenu)
+        copyAction = qt.qaction()(self._import_table)
         copyAction.setText("Copy Cell Value")
         copyAction.triggered.connect(self.copyToClipboard)
         self._import_table.addAction(copyAction)
-        renameAction = QtGui.QAction(self._import_table)
+        renameAction = qt.qaction()(self._import_table)
         renameAction.setText("Rename DWORDs to Proc Name")
         renameAction.triggered.connect(self.renameDword)
         self._import_table.addAction(renameAction)
 
-        self.clipboard = QtGui.QClipboard()
+        self.clipboard = qt.qclipboard()
 
     def initLayout(self):
-        impt_table_layout = QtGui.QVBoxLayout()
+        impt_table_layout = qt.qvboxlayout()()
         impt_table_layout.addWidget(self._import_table)
         self.setLayout(impt_table_layout)
 
@@ -69,12 +70,12 @@ class TacoImports(TacoTabWidget):
         self._import_table.setAlternatingRowColors(True)
         row = 0
         for impt in self.parent.impts:
-            self._import_table.setItem(row, 0, QtGui.QTableWidgetItem(impt["addr"]))
-            self._import_table.setItem(row, 1, QtGui.QTableWidgetItem(impt["dll"]))
-            self._import_table.setItem(row, 2, QtGui.QTableWidgetItem(impt["proc_name"]))
-            self._import_table.setItem(row, 3, QtGui.QTableWidgetItem(impt["proc_address"]))
-            self._import_table.setItem(row, 4, QtGui.QTableWidgetItem(impt["type"]))
-            self._import_table.setItem(row, 5, QtGui.QTableWidgetItem(idc.Name(int(impt["proc_address"], 16))))
+            self._import_table.setItem(row, 0, qt.qtablewidgetitem()(impt["addr"]))
+            self._import_table.setItem(row, 1, qt.qtablewidgetitem()(impt["dll"]))
+            self._import_table.setItem(row, 2, qt.qtablewidgetitem()(impt["proc_name"]))
+            self._import_table.setItem(row, 3, qt.qtablewidgetitem()(impt["proc_address"]))
+            self._import_table.setItem(row, 4, qt.qtablewidgetitem()(impt["type"]))
+            self._import_table.setItem(row, 5, qt.qtablewidgetitem()(idc.Name(int(impt["proc_address"], 16))))
             self._import_table.resizeRowToContents(row)
             row += 1
         self._import_table.setSortingEnabled(True)
@@ -153,8 +154,8 @@ class TacoImports(TacoTabWidget):
             log.error("Exception encountered: {}".format(e))
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qhboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,12 +23,11 @@
 #
 ########################################################################
 
-from PySide import QtGui, QtCore
-
 import idaapi
 import idc
 import idautils
 
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
 import logging
@@ -44,13 +43,13 @@ class TacoInterestingXOR(TacoTabWidget):
 
     def initVars(self):
         self._interesting_xors = []
-        self._interesting_xor_table = QtGui.QTableWidget()
+        self._interesting_xor_table = qt.qtablewidget()()
         self._interesting_xor_table.setRowCount(1)
         self._interesting_xor_table.setColumnCount(3)
         self._interesting_xor_table.setHorizontalHeaderLabels(("Function", "Address", "Loop", "Disassembly"))
 
     def initLayout(self):
-        layout = QtGui.QVBoxLayout()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self._interesting_xor_table)
         self.setLayout(layout)
 
@@ -68,10 +67,10 @@ class TacoInterestingXOR(TacoTabWidget):
         self._interesting_xor_table.setRowCount(len(self._interesting_xors))
         row = 0
         for interesting_xor in self._interesting_xors:
-            self._interesting_xor_table.setItem(row, 0, QtGui.QTableWidgetItem(interesting_xor["func"]))
-            self._interesting_xor_table.setItem(row, 1, QtGui.QTableWidgetItem("0x{:08X}".format(interesting_xor["addr"])))
-            self._interesting_xor_table.setItem(row, 2, QtGui.QTableWidgetItem(str(interesting_xor["loop"])))
-            self._interesting_xor_table.setItem(row, 3, QtGui.QTableWidgetItem(interesting_xor["disasm"]))
+            self._interesting_xor_table.setItem(row, 0, qt.qtablewidgetitem()(interesting_xor["func"]))
+            self._interesting_xor_table.setItem(row, 1, qt.qtablewidgetitem()("0x{:08X}".format(interesting_xor["addr"])))
+            self._interesting_xor_table.setItem(row, 2, qt.qtablewidgetitem()(str(interesting_xor["loop"])))
+            self._interesting_xor_table.setItem(row, 3, qt.qtablewidgetitem()(interesting_xor["disasm"]))
             self._interesting_xor_table.resizeRowToContents(row)
             row += 1
         self._interesting_xor_table.setSortingEnabled(True)
@@ -102,8 +101,8 @@ class TacoInterestingXOR(TacoTabWidget):
             next_xor = idc.FindText(idc.NextHead(next_xor), idc.SEARCH_DOWN|idc.SEARCH_NEXT, 0, 0, "xor")
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

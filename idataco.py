@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -27,12 +27,10 @@ __version__ = "0.1"
 __author__ = "arbor-jjones"
 
 import idaapi
-import idc
-import idautils
 
-from PySide import QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore
 
-from collections import OrderedDict
+import idataco.util.qt as qt
 
 from idataco.widgets.imports import TacoImports
 from idataco.widgets.loader import TacoLoader
@@ -68,18 +66,19 @@ class IDATaco(idaapi.PluginForm):
     ]
 
     def Show(self):
-        return idaapi.PluginForm.Show(self, "T.A.C.O.", options = idaapi.PluginForm.FORM_PERSIST)
+        return idaapi.PluginForm.Show(self, "T.A.C.O.", options=idaapi.PluginForm.FORM_PERSIST)
 
     def OnCreate(self, form):
         # Get parent widget
-        self.parent = self.FormToPySideWidget(form)
+
+        self.parent = qt.formtowidget(self, form)
         self.calls = []
         self.call_categories = set()
         self.cuckoo_version = "Unknown"
         self.impts = []
 
         # Create tab control
-        self.tabs = QtGui.QTabWidget()
+        self.tabs = qt.qtabwidget()()
         self.tabs.setTabsClosable(False)
 
         self._widgets = {}
@@ -91,7 +90,7 @@ class IDATaco(idaapi.PluginForm):
             tab, tab_name = w.getTacoTab()
             self.tabs.addTab(tab, tab_name)
 
-        layout = QtGui.QVBoxLayout()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self.tabs)
         self.parent.setLayout(layout)
         self.loadNonCuckooTabs()

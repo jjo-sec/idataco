@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -27,11 +27,11 @@
 original code by Aaron Portnoy / Zef Cekaj, Exodus Intelligence
 Updated and modified by Jason Jones
 """
-from PySide import QtGui, QtCore
 
 import idaapi
 import idc
 
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
 from collections import defaultdict
@@ -49,12 +49,12 @@ class TacoSwitchJumps(TacoTabWidget):
 
     def initVars(self):
         self.byte_strings = {}
-        self._switch_tree = QtGui.QTreeWidget()
+        self._switch_tree = qt.qtreewidget()()
         self._switch_tree.setHeaderLabels(("Names", "# Cases"))
         self._switch_tree.setColumnWidth(0, 100)
 
     def initLayout(self):
-        layout = QtGui.QVBoxLayout()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self._switch_tree)
         self.setLayout(layout)
 
@@ -83,18 +83,18 @@ class TacoSwitchJumps(TacoTabWidget):
         self._switch_tree.clicked.connect(self.click_tree)
         self.find_all_switch_jumps()
         for func in sorted(self._switch_dict.keys()):
-            func_node = QtGui.QTreeWidgetItem(self._switch_tree)
+            func_node = qt.qtreewidgetitem()(self._switch_tree)
             func_node.setText(0, func)
             func_node.setText(1, "")
             for item in self._switch_dict[func]:
-                node = QtGui.QTreeWidgetItem(func_node)
+                node = qt.qtreewidgetitem()(func_node)
                 addr = item[0]
                 cases = item[1]
                 address_element = "0x%08x" % addr
                 node.setText(0, address_element)
                 node.setText(1, "%04s" % cases)
                 for c in item[2]:
-                    cnode = QtGui.QTreeWidgetItem(node)
+                    cnode = qt.qtreewidgetitem()(node)
                     cnode.setText(0, c[0])
                     cnode.setText(1, c[2])
         return True
@@ -121,8 +121,8 @@ class TacoSwitchJumps(TacoTabWidget):
             next_switch = idc.FindBinary(idc.NextHead(next_switch), idc.SEARCH_DOWN|idc.SEARCH_NEXT, "ff 24")
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qvboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name

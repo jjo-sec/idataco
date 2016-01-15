@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ########################################################################
-# Copyright (c) 2015
+# Copyright (c) 2015-2016
 # Jason Jones <jason<at>jasonjon<dot>es>
 # All rights reserved.
 ########################################################################
@@ -23,8 +23,7 @@
 #
 ########################################################################
 
-from PySide import QtGui,QtCore
-
+import idataco.util.qt as qt
 from . import TacoTabWidget
 
 import logging
@@ -39,13 +38,13 @@ class TacoSignatures(TacoTabWidget):
     description = """ Simple display of signatures detected by Cuckoo Sandbox """
 
     def initVars(self):
-        self._signature_table = QtGui.QTableWidget()
+        self._signature_table = qt.qtablewidget()()
         self._signature_table.setRowCount(0)
         self._signature_table.setColumnCount(3)
         self._signature_table.setHorizontalHeaderLabels(["Signature","Information","Severity"])
 
     def initLayout(self):
-        sig_table_layout = QtGui.QVBoxLayout()
+        sig_table_layout = qt.qvboxlayout()()
         sig_table_layout.addWidget(self._signature_table)
         self.setLayout(sig_table_layout)
 
@@ -59,9 +58,9 @@ class TacoSignatures(TacoTabWidget):
             for x in sig["data"]: d.update(x)
             data = "\n".join(["{}: {}".format(k, v) for k, v in d.iteritems()])
             sev = "Severity: {severity}\nConfidence: {confidence}\nWeight: {weight}".format(**sig)
-            self._signature_table.setItem(row, 0, QtGui.QTableWidgetItem(sig["description"]))
-            self._signature_table.setItem(row, 1, QtGui.QTableWidgetItem(data))
-            self._signature_table.setItem(row, 2, QtGui.QTableWidgetItem(sev))
+            self._signature_table.setItem(row, 0, qt.qtablewidgetitem()(sig["description"]))
+            self._signature_table.setItem(row, 1, qt.qtablewidgetitem()(data))
+            self._signature_table.setItem(row, 2, qt.qtablewidgetitem()(sev))
             row += 1
 
         self._signature_table.resizeRowsToContents()
@@ -69,8 +68,8 @@ class TacoSignatures(TacoTabWidget):
         self._signature_table.setSortingEnabled(True)
 
     def getTacoTab(self):
-        taco_tab = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout()
+        taco_tab = qt.qwidget()()
+        layout = qt.qhboxlayout()()
         layout.addWidget(self)
         taco_tab.setLayout(layout)
         return taco_tab, self.name
