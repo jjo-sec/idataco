@@ -126,7 +126,7 @@ else:
         return QtWidgets.QTableWidgetItem
 
     def qclipboard():
-        return QtGui.QClipboard
+        return QtWidgets.QApplication.clipboard()
 
     def qcolor():
         return QtGui.QColor
