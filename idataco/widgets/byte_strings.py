@@ -105,13 +105,13 @@ class TacoByteStrings(TacoTabWidget):
                         reg = reg[reg.find('['):]
                         if reg.count('+') == 0: offset = 0
                         else:
-                            ops = reg.split('+')
-                            reg = reg[:reg.find('+')]+']'
+                            #ops = reg.split('+')
+                            reg = reg[1:4]
                             offset = ctypes.c_int32(idc.GetOperandValue(head, 0)).value
-                            reg_base = 0
-                            if len(ops) > 2 and ops[1].endswith('h'):
-                                reg_base = int(ops[1][:-1], 16)
-                            offset -= reg_base
+                            #reg_base = 0
+                            #if len(ops) > 2 and ops[1].endswith('h'):
+                            #    reg_base = int(ops[1][:-1], 16)
+                            #offset -= reg_base
                         if reg not in chr_vals: chr_vals[reg] = {}
                         chr_vals[reg][offset] = (head, chr(idc.GetOperandValue(head, 1)))
                     elif (idc.GetOpnd(head, 0).startswith('byte ptr') or idc.GetOpnd(head, 0).startswith('[e')) and idc.GetOpType(head, 1) == idc.o_reg and idc.GetOpnd(head, 1) in eightbit:
@@ -120,17 +120,53 @@ class TacoByteStrings(TacoTabWidget):
                         if reg.count('+') == 0:
                             offset = 0
                         else:
-                            ops = reg.split('+')
-                            reg = reg[:reg.find('+')]+']'
+                            #ops = reg.split('+')
+                            #reg = reg[:reg.find('+')]+']'
+                            reg = reg[1:4]
+
                             offset = ctypes.c_int32(idc.GetOperandValue(head, 0)).value
-                            reg_base = 0
-                            if len(ops) > 2 and ops[1].endswith('h'):
-                                reg_base = int(ops[1][:-1],16)
-                            offset -= reg_base
+                            #reg_base = 0
+                            #if len(ops) > 2 and ops[1].endswith('h'):
+                            #    reg_base = int(ops[1][:-1],16)
+                            #offset -= reg_base
 
                         if reg not in chr_vals:
                             chr_vals[reg] = {}
                         chr_vals[reg][offset] = (head, chr(eightbit[idc.GetOpnd(head, 1)]))
+                    elif idc.GetOpnd(head, 0).startswith('word ptr') and idc.GetOpType(head, 1) == idc.o_imm:
+                        val = idc.GetOperandValue(head, 1)
+                        chrs = "{:04x}".format(val).decode('hex')[::-1]
+                        reg = idc.GetOpnd(head, 0)
+                        reg = reg[reg.find('[')+1:]
+                        reg = reg[:3]
+                        offset = ctypes.c_int32(idc.GetOperandValue(head, 0)).value
+                        if reg not in chr_vals:
+                            chr_vals[reg] = {}
+                        for c in chrs:
+                            chr_vals[reg][offset] = (head, c)
+                            offset += 1
+                    elif idc.GetOpType(head, 1) == idc.o_imm:
+                        val = idc.GetOperandValue(head, 1)
+                        chrs = "{:08x}".format(val).decode('hex')[::-1]
+                        #if val < 0xffff:
+                        #    continue
+                        badchar = False
+                        for c in chrs:
+                            if ord(c) not in [0x0, 0xa, 0xd] and (ord(c) < 0x20 or ord(c) > 0x80):
+                                badchar = True
+                                break
+                        if badchar:
+                            continue
+                        reg = idc.GetOpnd(head, 0)
+                        reg = reg[reg.find('[')+1:]
+                        reg = reg[:3]
+                        offset = ctypes.c_int32(idc.GetOperandValue(head, 0)).value
+                        if reg not in chr_vals:
+                            chr_vals[reg] = {}
+                        for c in chrs:
+                            chr_vals[reg][offset] = (head, c)
+                            offset += 1
+
             for reg, c_v in chr_vals.items():
                 keys = c_v.keys()
                 keys.sort()
@@ -142,10 +178,10 @@ class TacoByteStrings(TacoTabWidget):
                         addr = c_v[o][0]
                         offset = o
                         s = c_v[o][1]
-                    elif last + 1 == o and c_v[o] != '\x00':
+                    elif last + 1 == o and c_v[o][1] != '\x00':
                         s += c_v[o][1]
                     else:
-                        if s != "" and len(s) > 3:
+                        if s != "" and len(s) >= 5:
                             self.byte_strings["0x%X" % addr] = s
                             func = idaapi.get_func(addr)
                             if offset > 0:
@@ -156,7 +192,7 @@ class TacoByteStrings(TacoTabWidget):
                         offset = o
                         addr = c_v[o][0]
                     last = o
-                if s != "" and len(s) > 1:
+                if s != "" and len(s) >= 5:
                     self.byte_strings["0x%X" % addr] = s
                     func = idaapi.get_func(addr)
 
