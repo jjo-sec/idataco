@@ -80,14 +80,14 @@ class TacoLoader(TacoTabWidget):
     def addChildren(self, parentWidget, children):
         if self.parent.cuckoo_version.startswith("1."):
             for child in children:
-                node = qt.qtablewidgetitem()(parentWidget)
+                node = qt.qtreewidgetitem()(parentWidget)
                 node.setText(0, "{}".format(child['pid']))
                 node.setText(1, child['name'])
                 self.addChildren(node, child['children'])
                 self._proc_tree.expandItem(node)
         else:
             for child in children:
-                node = qt.qtablewidgetitem()(parentWidget)
+                node = qt.qtreewidgetitem()(parentWidget)
                 node.setText(0, "{}".format(child['pid']))
                 node.setText(1, child['process_name'])
                 self.addChildren(node, child['children'])
