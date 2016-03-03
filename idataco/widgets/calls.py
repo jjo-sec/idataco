@@ -246,9 +246,9 @@ class TacoCalls(TacoTabWidget):
             func_color = self._func_color_picker.currentColor()
             ea_color = self._color_picker.currentColor()
             log.debug("Coloring instructions for 0x{:08x}".format(markup_ea))
-            idc.SetColor(markup_ea, idc.CIC_FUNC, int("0x{:02x}{:02x}{:02x}".format(*func_color.toTuple()[:3][::-1]), 16))
+            idc.SetColor(markup_ea, idc.CIC_FUNC, int("0x{:02x}{:02x}{:02x}".format(*func_color.getRgb()[:3][::-1]), 16))
             if colorFunc:
-                idc.SetColor(markup_ea, idc.CIC_ITEM, int("0x{:02x}{:02x}{:02x}".format(*ea_color.toTuple()[:3][::-1]), 16))
+                idc.SetColor(markup_ea, idc.CIC_ITEM, int("0x{:02x}{:02x}{:02x}".format(*ea_color.getRgb()[:3][::-1]), 16))
 
     def unMarkUpItem(self):
         markup_ea = int(self._call_table.item(self._call_table.currentRow(), 1).text(), 16)
