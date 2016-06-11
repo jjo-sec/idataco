@@ -149,49 +149,47 @@ class TacoLoader(TacoTabWidget):
                         elif call["api"] == "LdrLoadDll" and call["return_value"] == 0:
                             handles[args["module_address"]] = args["module_name"]
                 elif call["api"] == "LdrGetProcedureAddress":
+                    impt_type = "Indirect"
                     if args.get("FunctionName", None):
-                        impt_type = "Unknown"
-                        if "caller" in call:
-                            impt_type = "Indirect"
-                            addr = idc.PrevHead(int(call["caller"], 16))
-                            if addr != idc.BADADDR:
-                                # if the call is direct to a register or stack variable
-                                # assume that this is intentional obfuscation of GetProcAddress
-                                if idc.GetMnem(addr) == "call" and \
-                                    (re.match("^e[abcds][ipx]$", idc.GetOpnd(addr, 0)) \
-                                     or idc.GetOpnd(addr, 0).endswith("GetProcAddress") \
-                                     or idc.GetOpnd(addr, 0).startswith(("ds:dword", "dword ptr", "[e"))):
-                                    impt_type = "Dynamic"
-                            _process_data[pid]["imports"].append({"addr": "0x{:08X}".format(addr),
-                                                                  "dll": handles.get(args["ModuleHandle"], args["ModuleName"]),
-                                                                  "proc_name": args["FunctionName"],
-                                                                  "proc_address": args["FunctionAddress"],
-                                                                  "type": impt_type
-                                                                  }
-                                                                 )
-                        elif "stacktrace" in call and call["stacktrace"]:
-                            # handle case where injected code below ImageBase so don"t get exe_name prepended
-                            if call["stackstrace"][0].startswith("GetProcAddress") and \
-                               call["stackstrace"][0].count(" ") == 2 and (call["stacktrace"][1].startswith(exe_name) or \
-                               call["stackstrace"][0].count(" ") == 0):
+                        addr = idc.PrevHead(int(call["caller"], 16))
+                        if addr != idc.BADADDR:
+                            # if the call is direct to a register or stack variable
+                            # assume that this is intentional obfuscation of GetProcAddress
+                            if idc.GetMnem(addr) == "call" and \
+                                (re.match("^e[abcds][ipx]$", idc.GetOpnd(addr, 0)) \
+                                 or idc.GetOpnd(addr, 0).endswith("GetProcAddress") \
+                                 or idc.GetOpnd(addr, 0).startswith(("ds:dword", "dword ptr", "[e"))):
                                 impt_type = "Dynamic"
-                                addr = int(call["stackstrace"][1].split(" @ ")[-1], 16)
-                            elif call["stacktrace"][0].startswith(exe_name):
-                                impt_type = "Dynamic"
-                                addr = int(call["stacktrace"][0].split(" @ ")[-1], 16)
-                            else:
-                                for frm in call["stacktrace"]:
-                                    if frm.startswith(exe_name) or frm.count(" ") == 0:
-                                        addr = int(call["stacktrace"][0].split(" @ ")[-1], 16)
-                                        break
-                            _process_data[pid]["imports"].append({
-                                                                  "addr": "0x{:08X}".format(addr),
-                                                                  "dll": handles.get(args["module_address"], args["module_address"]),
-                                                                  "proc_name": args["function_name"],
-                                                                  "proc_address": args["function_address"],
-                                                                  "type": impt_type
-                                                                  }
-                                                                 )
+                        _process_data[pid]["imports"].append({"addr": "0x{:08X}".format(addr),
+                                                              "dll": handles.get(args["ModuleHandle"], args["ModuleName"]),
+                                                              "proc_name": args["FunctionName"],
+                                                              "proc_address": args["FunctionAddress"],
+                                                              "type": impt_type
+                                                              }
+                                                             )
+                    elif args.get("function_name") and call.get("stacktrace", []):
+                        # handle case where injected code below ImageBase so don"t get exe_name prepended
+                        if call["stacktrace"][0].startswith("GetProcAddress") and \
+                           call["stacktrace"][0].count(" ") == 2 and (call["stacktrace"][1].startswith(exe_name) or \
+                           call["stacktrace"][0].count(" ") == 0):
+                            impt_type = "Dynamic"
+                            addr = idc.PrevHead(int(call["stacktrace"][1].split(" @ ")[-1], 16))
+                        elif call["stacktrace"][0].startswith(exe_name):
+                            impt_type = "Dynamic"
+                            addr = idc.PrevHead(int(call["stacktrace"][0].split(" @ ")[-1], 16))
+                        else:
+                            for frm in call["stacktrace"]:
+                                if frm.count(" ") in [0, 2]:
+                                    addr = idc.PrevHead(int(frm.split(" @ ")[-1], 16))
+                                    break
+                        _process_data[pid]["imports"].append({
+                                                              "addr": "0x{:08X}".format(addr),
+                                                              "dll": handles.get(args["module_address"], args["module_address"]),
+                                                              "proc_name": args["function_name"],
+                                                              "proc_address": args["function_address"],
+                                                              "type": impt_type
+                                                              }
+                                                             )
         self.parent.signatures = json_data["signatures"]
         self.parent.process_data = _process_data
         self.parent.process_tree = json_data["behavior"]["processtree"]
