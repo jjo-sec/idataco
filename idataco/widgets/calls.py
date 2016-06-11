@@ -197,7 +197,12 @@ class TacoCalls(TacoTabWidget):
                 call_addr = call.get("caller", "0x00000000") if call_addr == idc.BADADDR else "0x{:08x}".format(call_addr)
             # cuckoo 2.0 stores call stack in "stack", but only enabled in DEBUG
             if self.parent.cuckoo_version.startswith("2.0") and call["stacktrace"]:
-                call_addr = call["stacktrace"][-1].split(" @ ")[-1]
+                for ret_addr in call["stacktrace"]:
+                    if ret_addr.count(" ") <= 2:
+                        call_addr = int(ret_addr.split(" @ ")[-1], 16)
+                        call_addr = idc.PrevHead(call_addr)
+                        call_addr = call.get("caller", "0x00000000") if call_addr == idc.BADADDR else "0x{:08x}".format(call_addr)
+                        break
             ret = call["return"] if "return" in call else str(call["return_value"])
             self._call_table.setItem(row, 1, qt.qtablewidgetitem()(call_addr))
             self._call_table.item(row, 1).setBackground(bg_color)
