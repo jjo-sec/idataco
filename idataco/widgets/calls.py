@@ -200,6 +200,7 @@ class TacoCalls(TacoTabWidget):
         if self.parent.cuckoo_version.startswith(("1.3", "2.0")):
             self._call_table.itemDoubleClicked.connect(self.clickRow)
         self._call_table.setRowCount(len(self.parent.calls))
+        self._call_table.setWordWrap(True)
         row = 0
         for call in self.parent.calls:
             called_api = ""
@@ -239,8 +240,10 @@ class TacoCalls(TacoTabWidget):
             self._call_table.setItem(row, 6, qt.qtablewidgetitem()(arg_str))
             self._call_table.item(row, 6).setBackground(bg_color)
             row += 1
-        self._call_table.resizeRowsToContents()
+        self._call_table.setVisible(False)
+        #self._call_table.resizeRowsToContents()
         self._call_table.resizeColumnsToContents()
+        self._call_table.setVisible(True)
         self._call_table.setSortingEnabled(True)
 
     def clickRow(self):
@@ -281,15 +284,22 @@ class TacoCalls(TacoTabWidget):
                              int("0x{:02x}{:02x}{:02x}".format(*ea_color.getRgb()[:3][::-1]), 16))
 
     def unMarkUpItem(self):
-        markup_ea = int(self._call_table.item(self._call_table.currentRow(), 1).text(), 16)
-        self.removeMarkup(markup_ea)
+        markup_ea = None
+        try:
+            markup_ea = int(self._call_table.item(self._call_table.currentRow(), 1).text(), 16)
+            self.removeMarkup(markup_ea)
+        except ValueError:
+            pass
         if markup_ea in self._marked_up:
             self._marked_up.remove(markup_ea)
-        if self.parent.cuckoo_version.startswith("1.3"):
-            markup_parent_ea = int(self._call_table.item(self._call_table.currentRow(), 2).text(), 16)
-            self.removeMarkup(markup_parent_ea)
-            if markup_parent_ea in self._marked_up:
-                self._marked_up.remove(markup_parent_ea)
+        if markup_ea and self.parent.cuckoo_version.startswith("1.3"):
+            try:
+                markup_parent_ea = int(self._call_table.item(self._call_table.currentRow(), 2).text(), 16)
+                self.removeMarkup(markup_parent_ea)
+                if markup_parent_ea in self._marked_up:
+                    self._marked_up.remove(markup_parent_ea)
+            except ValueError:
+                pass
 
     def removeMarkup(self, ea, force=False):
         if ea in self._marked_up or force:
@@ -305,8 +315,11 @@ class TacoCalls(TacoTabWidget):
 
     def removeAllMarkup(self):
         for i in range(self._call_table.rowCount()):
-            markup_ea = int(self._call_table.item(i, 1).text(), 16)
-            self.removeMarkup(markup_ea, force=True)
+            try:
+                markup_ea = int(self._call_table.item(i, 1).text(), 16)
+                self.removeMarkup(markup_ea, force=True)
+            except ValueError:
+                pass
         self._marked_up = set()
 
     def markupCategories(self):
@@ -326,15 +339,21 @@ class TacoCalls(TacoTabWidget):
                     self.addposterior(markup_ea, api_name, args)
                     self._marked_up.add(markup_ea)
                     if self.parent.cuckoo_version.startswith("1.3"):
-                        markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
-                        self.markupEa(markup_parent_ea)
-                        self._marked_up.add(markup_parent_ea)
+                        try:
+                            markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
+                            self.markupEa(markup_parent_ea)
+                            self._marked_up.add(markup_parent_ea)
+                        except ValueError:
+                            pass
 
     def markupAll(self):
         last_ea = idc.BADADDR
         for i in range(self._call_table.rowCount()):
-            ea = self._call_table
-            markup_ea = int(self._call_table.item(i, 1).text(), 16)
+            markup_ea = None
+            try:
+                markup_ea = int(self._call_table.item(i, 1).text(), 16)
+            except ValueError:
+                pass
             if markup_ea and markup_ea != idc.BADADDR and markup_ea != last_ea and markup_ea not in self._marked_up:
                 self.markupEa(markup_ea)
                 self._marked_up.add(markup_ea)
@@ -342,9 +361,12 @@ class TacoCalls(TacoTabWidget):
                 args = self._call_table.item(i, 6).text()
                 self.addPosterior(markup_ea, api_name, args)
                 if self.parent.cuckoo_version.startswith("1.3"):
-                    markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
-                    self.markupEa(markup_parent_ea, colorFunc=False)
-                    self._marked_up.add(markup_parent_ea)
+                    try:
+                        markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
+                        self.markupEa(markup_parent_ea, colorFunc=False)
+                        self._marked_up.add(markup_parent_ea)
+                    except ValueError:
+                        pass
 
     def copyToClipboard(self):
         item = self._call_table.item(self._call_table.currentRow(), self._call_table.currentColumn())
