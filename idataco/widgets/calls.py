@@ -30,34 +30,42 @@ import idataco.util.qt as qt
 from . import TacoTabWidget
 
 import logging
-log = logging.getLogger("taco.widgets")
+
+log = logging.getLogger(__name__)
+
 
 class TacoCalls(TacoTabWidget):
-
     name = "Cuckoo Calls"
     short_name = "cuckoo_calls"
     description = """ Display Win32 API calls logged by Cuckoo Sandbox and allow for filtering by value and category.
                       Also support annotating calls with metadata from the log """
 
     _COLOR_MAP = {
-            "registry":  qt.qcolor()(0xff, 0xc5, 0xc5),
-            "filesystem": qt.qcolor()(0xff, 0xe3, 0xc5),
-            "process": qt.qcolor()(0xc5, 0xe0, 0xff),
-            #"threading": qt.qcolor()(0xa,0xa,0xa),
-            "services": qt.qcolor()(0xcc, 0xc5, 0xff),
-            "device": qt.qcolor()(0xcc, 0xc5, 0xff),
-            "network": qt.qcolor()(0xd3, 0xff, 0xc5),
-            "synchronization": qt.qcolor()(0xf9, 0xc5, 0xff),
-            #"crypto": qt.qcolor()(0x9,0x9,0x9),
-            "browser": qt.qcolor()(0xdf, 0xff, 0xdf),
+        "registry": qt.qcolor()(0xff, 0xc5, 0xc5),
+        "filesystem": qt.qcolor()(0xff, 0xe3, 0xc5),
+        "process": qt.qcolor()(0xc5, 0xe0, 0xff),
+        # "threading": qt.qcolor()(0xa,0xa,0xa),
+        "services": qt.qcolor()(0xcc, 0xc5, 0xff),
+        "device": qt.qcolor()(0xcc, 0xc5, 0xff),
+        "network": qt.qcolor()(0xd3, 0xff, 0xc5),
+        "synchronization": qt.qcolor()(0xf9, 0xc5, 0xff),
+        # "crypto": qt.qcolor()(0x9,0x9,0x9),
+        "browser": qt.qcolor()(0xdf, 0xff, 0xdf),
     }
 
     def initVars(self):
         self._call_table = qt.qtablewidget()()
         self._call_table.setEditTriggers(qt.qabstractitemview().NoEditTriggers)
         self._call_table.setRowCount(0)
-        self._call_table.setColumnCount(6)
-        self._call_table.setHorizontalHeaderLabels(["Category","Caller","Parent  Caller","API","Return","Args"])
+        self._call_table.setColumnCount(7)
+        self._call_table.setHorizontalHeaderLabels(["Category",
+                                                    "Caller",
+                                                    "Parent  Caller",
+                                                    "Logged API",
+                                                    "Called API",
+                                                    "Return",
+                                                    "Args"]
+                                                   )
         self.clipboard = qt.qclipboard()
         self.setupTableContextMenu()
         self._marked_up = set()
@@ -65,7 +73,7 @@ class TacoCalls(TacoTabWidget):
 
         # call color picker setup
         self._color_picker = qt.qcolordialog()()
-        self._color_picker.setCurrentColor(qt.qcolor()(0xff,165,0x0))
+        self._color_picker.setCurrentColor(qt.qcolor()(0xff, 165, 0x0))
         self._color_picker.blockSignals(True)
         self._color_picker.currentColorChanged.connect(self.chooseColor)
         self._color_picker.blockSignals(False)
@@ -179,7 +187,14 @@ class TacoCalls(TacoTabWidget):
             cb.clicked.connect(self.filterCallData)
             self._checkbox_layout.addWidget(cb)
         self._call_table.clear()
-        self._call_table.setHorizontalHeaderLabels(["Category","Caller","Parent  Caller","API","Return","Args"])
+        self._call_table.setHorizontalHeaderLabels(["Category",
+                                                    "Caller",
+                                                    "Parent  Caller",
+                                                    "Logged API",
+                                                    "Called API",
+                                                    "Return",
+                                                    "Args"]
+                                                   )
         header = self._call_table.horizontalHeader()
         header.setStretchLastSection(True)
         if self.parent.cuckoo_version.startswith(("1.3", "2.0")):
@@ -187,16 +202,23 @@ class TacoCalls(TacoTabWidget):
         self._call_table.setRowCount(len(self.parent.calls))
         row = 0
         for call in self.parent.calls:
-            arg_str = "\r\n".join(["{}: {}".format(k, unicode(v)[:80].encode("unicode-escape")) for k, v in call["arguments"].items()])
+            called_api = ""
+            arg_str = "\r\n".join(
+                ["{}: {}".format(k, unicode(v)[:80].encode("unicode-escape")) for k, v in call["arguments"].items()])
             bg_color = self._COLOR_MAP.get(call.get("category", ""), qt.qcolor()(0xff, 0xff, 0xff))
             self._call_table.setItem(row, 0, qt.qtablewidgetitem()(call.get("category", "")))
             self._call_table.item(row, 0).setBackground(bg_color)
             call_addr = ""
             if self.parent.cuckoo_version.startswith("1.3"):
-                call_addr = idc.PrevHead(int(call["caller"],16))
+                call_addr = idc.PrevHead(int(call["caller"], 16))
                 call_addr = call.get("caller", "0x00000000") if call_addr == idc.BADADDR else "0x{:08x}".format(call_addr)
             # cuckoo 2.0 stores call stack in "stack", but only enabled in DEBUG
             if self.parent.cuckoo_version.startswith("2.0") and call["stacktrace"]:
+                for ret_addr in call["stacktrace"]:
+                    if ret_addr.count(" ") > 2:
+                        called_api = ret_addr.split("+")[0]
+                    else:
+                        break
                 for ret_addr in call["stacktrace"]:
                     if ret_addr.count(" ") <= 2:
                         call_addr = int(ret_addr.split(" @ ")[-1], 16)
@@ -210,15 +232,16 @@ class TacoCalls(TacoTabWidget):
             self._call_table.item(row, 2).setBackground(bg_color)
             self._call_table.setItem(row, 3, qt.qtablewidgetitem()(call["api"]))
             self._call_table.item(row, 3).setBackground(bg_color)
-            self._call_table.setItem(row, 4, qt.qtablewidgetitem()(ret))
+            self._call_table.setItem(row, 4, qt.qtablewidgetitem()(called_api))
             self._call_table.item(row, 4).setBackground(bg_color)
-            self._call_table.setItem(row, 5, qt.qtablewidgetitem()(arg_str))
+            self._call_table.setItem(row, 5, qt.qtablewidgetitem()(ret))
             self._call_table.item(row, 5).setBackground(bg_color)
+            self._call_table.setItem(row, 6, qt.qtablewidgetitem()(arg_str))
+            self._call_table.item(row, 6).setBackground(bg_color)
             row += 1
         self._call_table.resizeRowsToContents()
         self._call_table.resizeColumnsToContents()
         self._call_table.setSortingEnabled(True)
-
 
     def clickRow(self):
         addr = int(self._call_table.item(self._call_table.currentRow(), 1).text(), 16)
@@ -251,9 +274,11 @@ class TacoCalls(TacoTabWidget):
             func_color = self._func_color_picker.currentColor()
             ea_color = self._color_picker.currentColor()
             log.debug("Coloring instructions for 0x{:08x}".format(markup_ea))
-            idc.SetColor(markup_ea, idc.CIC_FUNC, int("0x{:02x}{:02x}{:02x}".format(*func_color.getRgb()[:3][::-1]), 16))
+            idc.SetColor(markup_ea, idc.CIC_FUNC,
+                         int("0x{:02x}{:02x}{:02x}".format(*func_color.getRgb()[:3][::-1]), 16))
             if colorFunc:
-                idc.SetColor(markup_ea, idc.CIC_ITEM, int("0x{:02x}{:02x}{:02x}".format(*ea_color.getRgb()[:3][::-1]), 16))
+                idc.SetColor(markup_ea, idc.CIC_ITEM,
+                             int("0x{:02x}{:02x}{:02x}".format(*ea_color.getRgb()[:3][::-1]), 16))
 
     def unMarkUpItem(self):
         markup_ea = int(self._call_table.item(self._call_table.currentRow(), 1).text(), 16)
@@ -304,7 +329,6 @@ class TacoCalls(TacoTabWidget):
                         markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
                         self.markupEa(markup_parent_ea)
                         self._marked_up.add(markup_parent_ea)
-
 
     def markupAll(self):
         last_ea = idc.BADADDR
