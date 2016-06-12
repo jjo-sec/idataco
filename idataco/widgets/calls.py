@@ -66,7 +66,7 @@ class TacoCalls(TacoTabWidget):
                                                     "Return",
                                                     "Args"]
                                                    )
-        self.clipboard = qt.qclipboard()
+        self._clipboard = qt.qclipboard()
         self.setupTableContextMenu()
         self._marked_up = set()
         self._checkbox_map = {}
@@ -257,7 +257,7 @@ class TacoCalls(TacoTabWidget):
             self.markupEa(markup_parent_ea, colorFunc=False)
             self._marked_up.add(markup_parent_ea)
         api_name = self._call_table.item(self._call_table.currentRow(), 3).text()
-        args = self._call_table.item(self._call_table.currentRow(), 5).text()
+        args = self._call_table.item(self._call_table.currentRow(), 6).text()
         self.addPosterior(markup_ea, api_name, args)
 
     def addPosterior(self, markup_ea, api_name, args):
@@ -322,7 +322,7 @@ class TacoCalls(TacoTabWidget):
                     last_ea = markup_ea
                     self.markupEa(markup_ea)
                     api_name = self._call_table.item(i, 3).text()
-                    args = self._call_table.item(i, 5).text()
+                    args = self._call_table.item(i, 6).text()
                     self.addposterior(markup_ea, api_name, args)
                     self._marked_up.add(markup_ea)
                     if self.parent.cuckoo_version.startswith("1.3"):
@@ -339,7 +339,7 @@ class TacoCalls(TacoTabWidget):
                 self.markupEa(markup_ea)
                 self._marked_up.add(markup_ea)
                 api_name = self._call_table.item(i, 3).text()
-                args = self._call_table.item(i, 5).text()
+                args = self._call_table.item(i, 6).text()
                 self.addPosterior(markup_ea, api_name, args)
                 if self.parent.cuckoo_version.startswith("1.3"):
                     markup_parent_ea = int(self._call_table.item(i, 2).text(), 16)
