@@ -38,7 +38,8 @@ from collections import defaultdict
 
 import logging
 
-log = logging.getLogger("taco.widgets")
+print __name__
+log = logging.getLogger(__name__)
 
 
 class TacoSwitchJumps(TacoTabWidget):

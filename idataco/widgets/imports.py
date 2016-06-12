@@ -31,7 +31,7 @@ import idataco.util.qt as qt
 
 from . import TacoTabWidget
 
-log = logging.getLogger("taco")
+log = logging.getLogger(__name__)
 
 
 class TacoImports(TacoTabWidget):

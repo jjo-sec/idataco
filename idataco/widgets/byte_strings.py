@@ -35,7 +35,7 @@ import idaapi
 
 import logging
 
-log = logging.getLogger("taco.widgets")
+log = logging.getLogger(__name__)
 
 
 class TacoByteStrings(TacoTabWidget):

@@ -32,7 +32,7 @@ from . import TacoTabWidget
 
 import logging
 
-log = logging.getLogger("taco")
+log = logging.getLogger(__name__)
 
 class TacoLoader(TacoTabWidget):
 
@@ -48,6 +48,7 @@ class TacoLoader(TacoTabWidget):
         self._proc_tree.setColumnCount(2)
         self._proc_tree.setHeaderLabels(("PID", "ProcName"))
         self._proc_tree.setColumnWidth(0, 100)
+        self._proc_tree.itemDoubleClicked.connect(self.parent.loadProcessData)
 
     def initLayout(self):
         loader_vlayout = qt.qvboxlayout()()
@@ -168,6 +169,7 @@ class TacoLoader(TacoTabWidget):
                                                               }
                                                              )
                     elif args.get("function_name") and call.get("stacktrace", []):
+                        addr = idc.BADADDR
                         # handle case where injected code below ImageBase so don"t get exe_name prepended
                         if call["stacktrace"][0].startswith("GetProcAddress") and \
                            call["stacktrace"][0].count(" ") == 2 and (call["stacktrace"][1].startswith(exe_name) or \
