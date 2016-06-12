@@ -28,7 +28,7 @@ from . import TacoTabWidget
 
 import logging
 
-log = logging.getLogger("taco.widgets")
+log = logging.getLogger(__name__)
 
 
 class TacoSignatures(TacoTabWidget):
@@ -55,9 +55,12 @@ class TacoSignatures(TacoTabWidget):
         row = 0
         for sig in self.parent.signatures:
             d = {}
-            for x in sig["data"]: d.update(x)
+            for x in sig.get("data", []):
+                d.update(x)
+            for x in sig.get("marks", []):
+                d.update(x)
             data = "\n".join(["{}: {}".format(k, v) for k, v in d.iteritems()])
-            sev = "Severity: {severity}\nConfidence: {confidence}\nWeight: {weight}".format(**sig)
+            sev = "Severity: {severity}".format(**sig)
             self._signature_table.setItem(row, 0, qt.qtablewidgetitem()(sig["description"]))
             self._signature_table.setItem(row, 1, qt.qtablewidgetitem()(data))
             self._signature_table.setItem(row, 2, qt.qtablewidgetitem()(sev))
