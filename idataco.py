@@ -26,9 +26,8 @@
 __version__ = "0.1"
 __author__ = "arbor-jjones"
 
+import logging
 import idaapi
-
-from PyQt5 import QtWidgets, QtGui, QtCore
 
 import idataco.util.qt as qt
 
@@ -40,14 +39,10 @@ from idataco.widgets.interesting_xor import TacoInterestingXOR
 from idataco.widgets.switch_jumps import TacoSwitchJumps
 from idataco.widgets.signatures import TacoSignatures
 
-import logging
-log = logging.getLogger("taco")
-log.setLevel('DEBUG')
-handler = logging.StreamHandler()
-# clear any existing handlers to avoid duplicate messages
-log.handlers = []
-handler.setFormatter(logging.Formatter("[%(asctime)s] [%(module)s] [%(levelname)s] %(funcName)s: %(message)s"))
-log.addHandler(handler)
+
+logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] [%(name)s] [%(levelname)s] %(funcName)s: %(message)s")
+log = logging.getLogger("idataco")
+
 
 """
 IDA TACO is an IDA Pro Plugin designed to bring Cuckoo Sandbox-generated output into IDA Pro
@@ -118,6 +113,7 @@ class IDATaco(idaapi.PluginForm):
         selected = self._widgets["cuckoo_loader"].getSelectedItems()
         if len(selected) == 1:
             pid = int(selected[0].text(0))
+            log.debug("Loading process data for PID {}".format(pid))
             data = self.process_data[pid]
             self.impts = data["imports"]
             self.calls = data["calls"]
