@@ -170,20 +170,31 @@ class TacoLoader(TacoTabWidget):
                                                              )
                     elif args.get("function_name") and call.get("stacktrace", []):
                         addr = idc.BADADDR
-                        # handle case where injected code below ImageBase so don"t get exe_name prepended
-                        if call["stacktrace"][0].startswith("GetProcAddress") and \
-                           call["stacktrace"][0].count(" ") == 2 and (call["stacktrace"][1].startswith(exe_name) or \
-                           call["stacktrace"][0].count(" ") == 0):
+                        if call["stacktrace"][0].count(" ") in [0,2]:
                             impt_type = "Dynamic"
-                            addr = idc.PrevHead(int(call["stacktrace"][1].split(" @ ")[-1], 16))
-                        elif call["stacktrace"][0].startswith(exe_name):
-                            impt_type = "Dynamic"
-                            addr = idc.PrevHead(int(call["stacktrace"][0].split(" @ ")[-1], 16))
+                        elif len(call["stacktrace"]) > 1:
+                            for i in range(1, len(call["stacktrace"])):
+                                cur = call["stacktrace"][i]
+                                prev = call["stacktrace"][i-1]
+                                if prev.startswith("GetProcAddress") and cur.count(" ") in [0, 2]:
+                                    impt_type = "Dynamic"
+                                    addr = idc.PrevHead(int(cur.split(" @ ")[-1], 16))
                         else:
                             for frm in call["stacktrace"]:
                                 if frm.count(" ") in [0, 2]:
                                     addr = idc.PrevHead(int(frm.split(" @ ")[-1], 16))
                                     break
+
+                        """
+                        # handle case where injected code below ImageBase so don"t get exe_name prepended
+                        if call["stacktrace"][0].startswith("GetProcAddress") and \
+                           call["stacktrace"][0].count(" ") == 2 and (call["stacktrace"][1].startswith(exe_name) or \
+                           call["stacktrace"][0].count(" ") == 0):
+                            impt_type = "Dynamic"
+                        elif call["stacktrace"][0].startswith(exe_name):
+                            impt_type = "Dynamic"
+                            addr = idc.PrevHead(int(call["stacktrace"][0].split(" @ ")[-1], 16))
+                        """
                         _process_data[pid]["imports"].append({
                                                               "addr": "0x{:08X}".format(addr),
                                                               "dll": handles.get(args["module_address"], args["module_address"]),
