@@ -179,6 +179,10 @@ class TacoLoader(TacoTabWidget):
                                 if prev.startswith("GetProcAddress") and cur.count(" ") in [0, 2]:
                                     impt_type = "Dynamic"
                                     addr = idc.PrevHead(int(cur.split(" @ ")[-1], 16))
+                                    break
+                                else:
+                                    addr = int(cur.split(" @ ")[-1], 16)
+                                    addr = idc.PrevHead(addr) if idc.PrevHead(addr) != idc.BADADDR else addr
                         else:
                             for frm in call["stacktrace"]:
                                 if frm.count(" ") in [0, 2]:

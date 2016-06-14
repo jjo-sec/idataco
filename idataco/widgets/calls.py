@@ -167,7 +167,9 @@ class TacoCalls(TacoTabWidget):
             for i in range(self._call_table.rowCount()):
                 if self._call_table.item(i, 0).text() in unchecked:
                     self._call_table.setRowHidden(i, True)
-                elif filter_text not in self._call_table.item(i, 3).text().lower() and filter_text not in self._call_table.item(i, 5).text().lower():
+                elif filter_text not in self._call_table.item(i, 3).text().lower() and \
+                                filter_text not in self._call_table.item(i, 4).text().lower() and \
+                                filter_text not in self._call_table.item(i, 6).text().lower():
                     self._call_table.setRowHidden(i, True)
                 else:
                     self._call_table.setRowHidden(i, False)
