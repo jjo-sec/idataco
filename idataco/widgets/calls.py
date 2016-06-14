@@ -261,14 +261,15 @@ class TacoCalls(TacoTabWidget):
             markup_parent_ea = int(self._call_table.item(self._call_table.currentRow(), 2).text(), 16)
             self.markupEa(markup_parent_ea, colorFunc=False)
             self._marked_up.add(markup_parent_ea)
-        api_name = self._call_table.item(self._call_table.currentRow(), 3).text()
+        called_api_name = self._call_table.item(self._call_table.currentRow(), 4).text()
+        logged_api_name = self._call_table.item(self._call_table.currentRow(), 3).text()
         args = self._call_table.item(self._call_table.currentRow(), 6).text()
-        self.addPosterior(markup_ea, api_name, args)
+        self.addPosterior(markup_ea, logged_api_name, called_api_name, args)
 
-    def addPosterior(self, markup_ea, api_name, args):
+    def addPosterior(self, markup_ea, logged_api_name, called_api_name, args):
         log.debug("Adding posterior lines")
-        idc.MakeComm(markup_ea, str(api_name))
-        idc.ExtLinB(markup_ea, 0, "api: {}".format(api_name))
+        idc.MakeComm(markup_ea, str(called_api_name))
+        idc.ExtLinB(markup_ea, 0, "api: {}".format(logged_api_name))
         ln = 1
         for arg in re.split("\r?\n", args.strip()):
             idc.ExtLinB(markup_ea, ln, str(arg.strip()))
